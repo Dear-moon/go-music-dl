@@ -668,7 +668,7 @@ func RegisterMusicRoutes(api *gin.RouterGroup) {
 				return
 			}
 		}
-		c.String(200, "[00:00.00] 閺嗗倹妫ゅ宀冪槤")
+		c.String(200, "[00:00.00] 纯音乐 / 无歌词")
 	})
 }
 
