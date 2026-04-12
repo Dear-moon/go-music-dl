@@ -11,7 +11,7 @@ func main() {
 	go web.Start("37777", false)
 
 	w := webview.New(false)
-	w.SetTitle("go-music-dl-desktop")
+	w.SetTitle("music-dl-desktop-go")
 	w.SetSize(1350, 780, webview.Hint(webview.HintNone))
 	w.Navigate("http://localhost:37777/music/")
 

@@ -16,7 +16,7 @@ func main() {
 		Debug:     false,
 		AutoFocus: true,
 		WindowOptions: webview2.WindowOptions{
-			Title:  "go-music-dl-desktop",
+			Title:  "music-dl-desktop-go",
 			Width:  1350,
 			Height: 780,
 			IconId: 2, // icon resource id

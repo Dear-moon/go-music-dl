@@ -15,5 +15,6 @@ data/video_output/
 data/settings.db
 data/
 winres/winres.json
+winres/desktop_go.winres.json
 *.exe
 *.log

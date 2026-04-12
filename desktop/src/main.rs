@@ -17,7 +17,7 @@ use wry::{WebContext, WebViewBuilder};
 use std::os::windows::process::CommandExt;
 
 mod window_config {
-    pub const TITLE: &str = "Music DL Desktop";
+    pub const TITLE: &str = "music-dl-desktop-rust";
     pub const WIDTH: f64 = 1280.0;
     pub const HEIGHT: f64 = 800.0;
 }
@@ -313,7 +313,7 @@ fn open_log_file(log_path: &Path) -> io::Result<std::fs::File> {
         .create(true)
         .append(true)
         .open(log_path)?;
-    writeln!(file, "\n== Music DL Desktop launch ==")?;
+    writeln!(file, "\n== music-dl-desktop-rust launch ==")?;
     Ok(file)
 }
 
@@ -349,7 +349,7 @@ fn build_startup_error_page(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Music DL Desktop</title>
+  <title>music-dl-desktop-rust</title>
   <style>
     body {{
       margin: 0;
