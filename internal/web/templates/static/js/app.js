@@ -904,6 +904,7 @@ function scrollToTop() {
 let defaultDocumentTitle = document.title;
 let mediaSessionSyncTimer = 0;
 let mediaSessionSyncVersion = 0;
+const mediaSessionCoverCache = new Map();
 
 function mediaSessionControllerSupported() {
     return typeof navigator !== 'undefined' && !!navigator.mediaSession;
@@ -920,6 +921,20 @@ function getCurrentAPlayerAudio() {
     return ap.list.audios[index] || null;
 }
 
+function buildMediaSessionTrackKey(audio = getCurrentAPlayerAudio()) {
+    if (!audio) return '';
+
+    const customId = String(audio.custom_id || '').trim();
+    if (customId) return customId;
+
+    const source = String(audio.source || '').trim();
+    const name = String(audio.name || '').trim();
+    const artist = String(audio.artist || '').trim();
+    if (!source && !name && !artist) return '';
+
+    return `${source}::${name}::${artist}`;
+}
+
 function normalizeMediaSessionURL(value) {
     const raw = String(value || '').trim();
     if (!raw) return '';
@@ -929,6 +944,11 @@ function normalizeMediaSessionURL(value) {
     } catch (_) {
         return raw;
     }
+}
+
+function isTransientMediaSessionURL(value) {
+    const lowered = String(value || '').trim().toLowerCase();
+    return lowered.startsWith('data:') || lowered.startsWith('blob:');
 }
 
 function extractURLFromBackgroundImage(value) {
@@ -942,6 +962,7 @@ function extractURLFromBackgroundImage(value) {
 
 function buildMediaSessionCoverURL(audio = getCurrentAPlayerAudio()) {
     const candidates = [];
+    const trackKey = buildMediaSessionTrackKey(audio);
 
     if (audio) {
         candidates.push({
@@ -982,19 +1003,26 @@ function buildMediaSessionCoverURL(audio = getCurrentAPlayerAudio()) {
         }
     }
 
+    const fallbackCandidates = [];
+    const seen = new Set();
     for (const candidate of candidates) {
         const normalized = normalizeMediaSessionURL(candidate?.url);
-        if (!normalized) continue;
+        if (!normalized || seen.has(normalized)) continue;
+        seen.add(normalized);
 
-        const lowered = normalized.toLowerCase();
-        if (lowered.startsWith('data:') || lowered.startsWith('blob:')) {
-            return normalized;
+        if (isTransientMediaSessionURL(normalized)) {
+            fallbackCandidates.push(normalized);
+            continue;
         }
 
         try {
             const parsed = new URL(normalized, window.location.href);
             if (parsed.origin === window.location.origin && parsed.pathname === `${API_ROOT}/cover_proxy`) {
-                return parsed.toString();
+                const resolved = parsed.toString();
+                if (trackKey) {
+                    mediaSessionCoverCache.set(trackKey, resolved);
+                }
+                return resolved;
             }
 
             const proxy = new URL(`${API_ROOT}/cover_proxy`, window.location.href);
@@ -1003,10 +1031,28 @@ function buildMediaSessionCoverURL(audio = getCurrentAPlayerAudio()) {
             if (sourceValue) {
                 proxy.searchParams.set('source', sourceValue);
             }
-            return proxy.toString();
+            const resolved = proxy.toString();
+            if (trackKey) {
+                mediaSessionCoverCache.set(trackKey, resolved);
+            }
+            return resolved;
         } catch (_) {
+            if (trackKey) {
+                mediaSessionCoverCache.set(trackKey, normalized);
+            }
             return normalized;
         }
+    }
+
+    if (trackKey) {
+        const cached = mediaSessionCoverCache.get(trackKey);
+        if (cached) {
+            return cached;
+        }
+    }
+
+    if (fallbackCandidates.length > 0) {
+        return fallbackCandidates[0];
     }
 
     return '';
@@ -1032,10 +1078,17 @@ function updateDocumentTitleForMedia(audio) {
     document.title = `${parts.join(' - ')} | music-dl`;
 }
 
+function shouldPreserveMediaSessionMetadata() {
+    return !!(ap?.list?.audios?.length);
+}
+
 function updateMediaSessionMetadata(audio = getCurrentAPlayerAudio()) {
     if (!mediaSessionControllerSupported()) return;
 
     if (!audio) {
+        if (shouldPreserveMediaSessionMetadata()) {
+            return;
+        }
         if (mediaSessionMetadataSupported()) {
             navigator.mediaSession.metadata = null;
         }
@@ -1693,9 +1746,9 @@ function playAllAndJumpTo(btn) {
 
     allCards.forEach(card => {
         const ds = card.dataset;
-        let coverUrl = '';
+        let coverUrl = ds.cover || '';
         const imgEl = card.querySelector('.cover-wrapper img');
-        if (imgEl) coverUrl = imgEl.src;
+        if (imgEl && imgEl.src) coverUrl = imgEl.src;
 
         playlist.push({
             name: ds.name,
@@ -2136,9 +2189,9 @@ function openAddToCollectionModal(btn) {
     const card = btn.closest('.song-card');
     if (!card) return;
     
-    let coverUrl = '';
+    let coverUrl = card.dataset.cover || '';
     const imgEl = card.querySelector('.cover-wrapper img');
-    if (imgEl) coverUrl = imgEl.src;
+    if (imgEl && imgEl.src) coverUrl = imgEl.src;
 
     let extra = {};
     try {

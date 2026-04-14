@@ -27,6 +27,27 @@ func TestAppJSMediaSessionArtworkUsesCoverProxy(t *testing.T) {
 	if !strings.Contains(js, "function scheduleMediaSessionSync(audio = getCurrentAPlayerAudio(), delayMs = 160)") {
 		t.Fatal("app.js missing delayed media session resync helper")
 	}
+	if !strings.Contains(js, "const mediaSessionCoverCache = new Map();") {
+		t.Fatal("app.js missing media session cover cache")
+	}
+	if !strings.Contains(js, "function buildMediaSessionTrackKey(audio = getCurrentAPlayerAudio())") {
+		t.Fatal("app.js missing media session track key helper")
+	}
+	if !strings.Contains(js, "function isTransientMediaSessionURL(value)") {
+		t.Fatal("app.js missing transient media session URL helper")
+	}
+	if !strings.Contains(js, "mediaSessionCoverCache.set(trackKey, resolved);") {
+		t.Fatal("app.js missing stable media session cover caching")
+	}
+	if !strings.Contains(js, "const cached = mediaSessionCoverCache.get(trackKey);") {
+		t.Fatal("app.js missing cached media session cover lookup")
+	}
+	if !strings.Contains(js, "function shouldPreserveMediaSessionMetadata()") {
+		t.Fatal("app.js missing transient media session metadata guard")
+	}
+	if !strings.Contains(js, "if (shouldPreserveMediaSessionMetadata()) {") {
+		t.Fatal("app.js missing transient metadata preservation logic")
+	}
 }
 
 func TestCoverProxyReturnsInlineImage(t *testing.T) {
