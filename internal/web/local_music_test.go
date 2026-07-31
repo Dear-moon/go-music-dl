@@ -916,8 +916,9 @@ func TestAutoCacheClientWaitsForConfirmedLocalMatch(t *testing.T) {
 	}
 	js := string(content)
 	for _, want := range []string{
-		"autoCacheOnPlay: true",
+		"autoCacheOnPlay: false",
 		"function isAutoCacheOnPlayEnabled()",
+		"return webSettings.autoCacheOnPlay === true;",
 		"if (!isAutoCacheOnPlayEnabled()) return;",
 		"!isAutoCacheOnPlayEnabled() ||",
 		"localMusicMatchCache[audio.custom_id]",

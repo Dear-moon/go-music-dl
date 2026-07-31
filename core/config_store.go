@@ -171,7 +171,7 @@ func defaultWebSettings() WebSettings {
 		DownloadConcurrency:      DefaultWebConcurrency,
 		AutoCheckUpdate:          true,
 		AutoSwitchInvalidSources: true,
-		AutoCacheOnPlay:          true,
+		AutoCacheOnPlay:          false,
 		UpdateRepoURL:            DefaultUpdateRepoURL,
 		GithubProxyEnabled:       false,
 		GithubProxyURL:           DefaultGithubProxyURL,
