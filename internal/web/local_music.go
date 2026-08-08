@@ -1352,6 +1352,7 @@ func probeLocalMusicTrack(track *localMusicTrack) (*localProbeResult, error) {
 	}
 
 	cmd := exec.Command(ffprobePath, "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", track.absPath)
+	core.HideCommandWindow(cmd)
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, err
